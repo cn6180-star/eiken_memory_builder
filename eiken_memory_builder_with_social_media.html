@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eiken Memory Builder</title>
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --blue-light: #eaf1ff;
+      --green: #16a34a;
+      --orange: #d97706;
+      --red: #dc2626;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --card: #ffffff;
+      --bg: #f4f7fb;
+      --soft: #f8fafc;
+      --shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #eef6ff 0%, var(--bg) 45%, #ffffff 100%);
+      min-height: 100vh;
+      line-height: 1.65;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 42px auto;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .title h1 {
+      color: var(--blue-dark);
+      margin: 0;
+      font-size: clamp(2.1rem, 5vw, 3.6rem);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+    }
+
+    .title p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 4vw, 28px);
+    }
+
+    .selector-area {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .selector-row {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .selector-label {
+      font-weight: 800;
+      color: #475569;
+      font-size: 0.94rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      background: #ffffff;
+      color: var(--text);
+      border: 1px solid #dbe4f0;
+      border-radius: 999px;
+      padding: 10px 17px;
+      font-weight: 800;
+      font-size: 0.96rem;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+      transition: transform 0.08s ease, background 0.15s ease, color 0.15s ease, border 0.15s ease;
+    }
+
+    .tab:hover {
+      transform: translateY(-1px);
+    }
+
+    .tab.active {
+      background: var(--blue);
+      color: white;
+      border-color: var(--blue);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+    }
+
+    .tab.small {
+      padding: 8px 14px;
+      font-size: 0.9rem;
+    }
+
+    .topic-tab {
+      max-width: 100%;
+      white-space: normal;
+      text-align: left;
+    }
+
+    .speech-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, #eff6ff, #ffffff);
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      margin-bottom: 18px;
+    }
+
+    .speech-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.3;
+      color: #172554;
+    }
+
+    .speech-header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .counter-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      padding: 8px 13px;
+      background: #ffffff;
+      border: 1px solid #dbeafe;
+      color: var(--blue-dark);
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 0.9rem;
+    }
+
+    .level-row, .practice-row {
+      margin: 16px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .row-title {
+      font-weight: 900;
+      color: #475569;
+      margin-right: 2px;
+      min-width: 88px;
+    }
+
+    .practice-row {
+      padding: 12px;
+      border: 1px dashed #cbd5e1;
+      background: #f8fafc;
+      border-radius: 18px;
+    }
+
+    .main-area {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .main-area.whole {
+      grid-template-columns: 1fr;
+    }
+
+    .sentence-list {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: white;
+      align-self: start;
+      max-height: 620px;
+      overflow-y: auto;
+    }
+
+    .sentence-list-header {
+      padding: 14px 16px;
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 900;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .sentence-item {
+      width: 100%;
+      background: white;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 13px 15px;
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      color: var(--text);
+      font-weight: 750;
+      line-height: 1.45;
+    }
+
+    .sentence-item:last-child {
+      border-bottom: none;
+    }
+
+    .sentence-item.active {
+      background: var(--blue-light);
+      color: var(--blue-dark);
+    }
+
+    .num {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    .sentence-item.active .num {
+      background: white;
+      color: var(--blue-dark);
+    }
+
+    .mark {
+      margin-left: auto;
+      font-size: 0.85rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .mark.easy { color: var(--green); }
+    .mark.almost { color: var(--orange); }
+    .mark.difficult { color: var(--red); }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: clamp(18px, 4vw, 26px);
+      min-height: 330px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    }
+
+    .sentence-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eef2ff;
+      color: var(--blue-dark);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 900;
+      margin-bottom: 18px;
+      font-size: 0.92rem;
+    }
+
+    .speech-text {
+      font-size: clamp(1.25rem, 3.5vw, 1.85rem);
+      line-height: 1.7;
+      letter-spacing: -0.02em;
+      margin: 0 0 20px;
+    }
+
+    .whole-text {
+      font-size: clamp(1.05rem, 2.4vw, 1.3rem);
+      line-height: 1.85;
+    }
+
+    .whole-sentence {
+      display: block;
+      margin: 0 0 0.85em;
+    }
+
+    .blank {
+      display: inline-block;
+      min-width: 4.6em;
+      border-bottom: 3px solid #374151;
+      transform: translateY(-0.08em);
+      margin: 0 0.08em;
+      height: 1.05em;
+      vertical-align: baseline;
+    }
+
+    .hint {
+      color: var(--muted);
+      margin: 12px 0 18px;
+      font-size: 1rem;
+    }
+
+    .answer-box {
+      background: #f8fafc;
+      border: 1px solid #dbe4f0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      color: #334155;
+      font-weight: 700;
+      line-height: 1.65;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 1rem;
+      font-weight: 900;
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
+    }
+
+    .btn:hover {
+      filter: brightness(0.98);
+    }
+
+    .btn.secondary {
+      background: #eef2ff;
+      color: var(--blue-dark);
+      box-shadow: none;
+    }
+
+    .btn.gray {
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .btn.green { background: var(--green); }
+    .btn.orange { background: var(--orange); }
+    .btn.red { background: var(--red); }
+
+    .btn:disabled {
+      background: #f3f4f6;
+      color: #9ca3af;
+      box-shadow: none;
+      cursor: not-allowed;
+      border: 1px solid #e5e7eb;
+    }
+
+    .stats {
+      margin-top: 18px;
+      color: #64748b;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-weight: 750;
+    }
+
+    .stat-pill {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
+    .empty {
+      padding: 26px;
+      text-align: center;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 18px;
+      color: #64748b;
+      font-weight: 750;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      background: #111827;
+      color: white;
+      padding: 11px 16px;
+      border-radius: 999px;
+      font-weight: 800;
+      box-shadow: 0 14px 35px rgba(0,0,0,0.22);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 10;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: #64748b;
+      font-size: 0.93rem;
+      text-align: center;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        margin: 22px auto;
+        width: min(100vw - 16px, 760px);
+      }
+
+      .selector-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .main-area {
+        grid-template-columns: 1fr;
+      }
+
+      .sentence-list {
+        max-height: 330px;
+      }
+
+      .speech-header {
+        flex-direction: column;
+      }
+
+      .btn, .tab {
+        padding: 11px 15px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .panel {
+        padding: 14px;
+      }
+
+      .title h1 {
+        font-size: 2rem;
+      }
+
+      .speech-text {
+        font-size: 1.2rem;
+      }
+
+      .button-row .btn {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="title">
+      <h1>Eiken Memory Builder</h1>
+      <p>Build your speech from full text to memory.</p>
+    </div>
+
+    <div class="panel">
+      <div class="selector-area">
+        <div class="selector-row">
+          <div class="selector-label">Category</div>
+          <div class="tabs" id="categoryTabs"></div>
+        </div>
+
+        <div class="selector-row">
+          <div class="selector-label">Topic</div>
+          <div class="tabs" id="topicTabs"></div>
+        </div>
+
+        <div class="selector-row">
+          <div class="selector-label">Position</div>
+          <div class="tabs">
+            <button class="tab" id="yesTab" onclick="setPosition('yes')">YES</button>
+            <button class="tab" id="noTab" onclick="setPosition('no')">NO</button>
+          </div>
+        </div>
+
+        <div class="selector-row">
+          <div class="selector-label">Mode</div>
+          <div class="tabs">
+            <button class="tab" id="wholeTab" onclick="setMode('whole')">Whole Speech</button>
+            <button class="tab" id="sentenceTab" onclick="setMode('sentence')">Sentence by Sentence</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="speech-header">
+        <div>
+          <h2 id="currentTitle"></h2>
+          <p id="currentSub"></p>
+        </div>
+        <div class="counter-pill" id="wordCount"></div>
+      </div>
+
+      <div class="level-row">
+        <span class="row-title">Level</span>
+        <button class="tab small" onclick="setLevel(0)" id="level0">Level 0</button>
+        <button class="tab small" onclick="setLevel(1)" id="level1">Level 1</button>
+        <button class="tab small" onclick="setLevel(2)" id="level2">Level 2</button>
+        <button class="tab small" onclick="setLevel(3)" id="level3">Level 3</button>
+        <button class="tab small" onclick="setLevel(4)" id="level4">Level 4</button>
+        <button class="tab small" onclick="setLevel(5)" id="level5">Level 5</button>
+        <button class="tab small" onclick="setLevel(6)" id="level6">Level 6</button>
+      </div>
+
+      <div class="practice-row" id="practiceSetRow">
+        <span class="row-title">Practice Set</span>
+        <button class="tab small" onclick="setPracticeSet('all')" id="setAll">All sentences</button>
+        <button class="tab small" onclick="setPracticeSet('almost')" id="setAlmost">△ Almost only</button>
+        <button class="tab small" onclick="setPracticeSet('difficult')" id="setDifficult">× Difficult only</button>
+        <button class="tab small" onclick="setPracticeSet('review')" id="setReview">△ + × Review</button>
+      </div>
+
+      <div id="main"></div>
+
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <div class="footer-note">
+      Memory Builder → Speech Trainer の前段階として使う暗記用プロトタイプ
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const DATA = [
+      {
+            "category": "Education",
+            "topicId": "school-refusal",
+            "topicShort": "School refusal",
+            "title": "Should school refusal be considered a social issue?",
+            "speeches": {
+                  "yes": [
+                        "I agree with the statement that school refusal should be considered a social issue.",
+                        "There are two main reasons for this.",
+                        "Firstly, the number of students who refuse to attend school has been increasing in recent years.",
+                        "If more and more students are facing the same problem, it may mean that the current education system is not meeting their needs.",
+                        "Therefore, society should take this issue more seriously.",
+                        "Secondly, school refusal can affect society as a whole.",
+                        "If these students cannot fully develop their abilities, society may lose their future contributions.",
+                        "One solution is offering more flexible school options.",
+                        "For example, schools could offer classes that start in the afternoon for students who struggle with early mornings.",
+                        "In addition, teachers need more support because their workload has been increasing.",
+                        "For these reasons, I believe that school refusal should be considered a social issue."
+                  ],
+                  "no": [
+                        "I disagree with the statement that school refusal should be considered a social issue.",
+                        "There are two main reasons for this.",
+                        "Firstly, the reasons behind school refusal differ from student to student.",
+                        "Some students may have developmental disorders, while others may struggle with family problems or anxiety.",
+                        "Because each situation is unique, treating all cases as the same social problem could overlook individual needs.",
+                        "Secondly, students need individualized support rather than broad social measures.",
+                        "Teachers, parents, and specialists should work together to understand each student's needs and find the best solution for them.",
+                        "When students feel understood and supported, they are more likely to develop a sense of security and seek help when they need it.",
+                        "For these reasons, I do not believe that school refusal should be considered a social issue."
+                  ]
+            }
+      },
+      {
+                  "category": "Education",
+                  "topicId": "social-media-restrictions",
+                  "topicShort": "Social media",
+                  "title": "Should students have restrictions on their use of social media?",
+                  "speeches": {
+                              "yes": [
+                                          "I agree with the statement that students should have restrictions on their use of social media.",
+                                          "There are two main reasons for this.",
+                                          "Firstly, social media can expose students to dangerous opportunities such as shady part-time jobs.",
+                                          "Some ads on social media are created by people with malicious intent and promise unusually high pay or easy work.",
+                                          "Students are not always mature enough to judge these offers properly, so they may not realize the risks involved.",
+                                          "In fact, I have seen news reports about minors getting involved in felonies after responding to such advertisements.",
+                                          "Limiting social media use could help reduce students' exposure to these risky offers.",
+                                          "Secondly, social media can encourage cyberbullying.",
+                                          "Bullying on social media is often done unnoticed, and it can seriously harm students' mental health.",
+                                          "When people think they are anonymous, they sometimes go too far and say things they would never say face to face.",
+                                          "Therefore, some form of oversight or stricter rules may be necessary to create a safer online environment for students.",
+                                          "For these reasons, I believe that students should have restrictions on their use of social media."
+                              ],
+                              "no": [
+                                          "I disagree with the statement that students should have restrictions on their use of social media.",
+                                          "There are two main reasons for this.",
+                                          "Firstly, social media can be a valuable educational tool.",
+                                          "Students can easily access useful information, free lectures, and educational videos through social media platforms.",
+                                          "They can also connect with people who share the same interests and exchange ideas.",
+                                          "As a result, social media can broaden their knowledge and support independent learning.",
+                                          "Secondly, restricting social media use does not address the root causes of problems such as cyberbullying and shady job offers.",
+                                          "Even if access is limited, students may still encounter these risks through other websites or messaging apps.",
+                                          "Instead of imposing restrictions, schools and parents should teach students how to use social media responsibly and recognize potential dangers.",
+                                          "For these reasons, I believe that students should not have restrictions on their use of social media."
+                              ]
+                  }
+      },
+      {
+            "category": "Culture",
+            "topicId": "traditional-culture",
+            "topicShort": "Traditional culture",
+            "title": "Should traditional cultural practices be preserved?",
+            "speeches": {
+                  "yes": [
+                        "I agree with the statement that traditional cultural practices should be preserved.",
+                        "There are two main reasons for this.",
+                        "Firstly, preserving traditions strengthens our national identity.",
+                        "Traditional festivals and ceremonies remind us of our shared history and bring different generations together.",
+                        "As a result, people develop a stronger sense of pride and belonging.",
+                        "For example, events such as hanami allow people to appreciate customs that have been passed down for generations.",
+                        "Secondly, traditional cultural practices support local economies.",
+                        "Many traditional events attract tourists and encourage people to visit local areas.",
+                        "As a result, local businesses such as restaurants, hotels, and souvenir shops can benefit from increased spending.",
+                        "In addition, these events help promote local culture to a wider audience.",
+                        "For these reasons, I believe that traditional cultural practices should be preserved."
+                  ],
+                  "no": [
+                        "I disagree with the statement that traditional cultural practices should be preserved.",
+                        "There are two main reasons for this.",
+                        "Firstly, preserving traditions can be expensive.",
+                        "Many traditional events require financial support from local governments and communities.",
+                        "As a result, a large amount of money may be spent on maintaining customs that are no longer relevant to modern society.",
+                        "This money could instead be used for important public services such as education and healthcare.",
+                        "Secondly, some traditions may prevent society from adapting to change.",
+                        "As society evolves, people’s values and lifestyles also change.",
+                        "However, certain traditional practices may discourage new ideas or exclude some groups of people.",
+                        "Therefore, it is important to focus on practices that reflect the needs of modern society.",
+                        "For these reasons, I believe that traditional cultural practices should not necessarily be preserved."
+                  ]
+            }
+      },
+      {
+            "category": "Technology",
+            "topicId": "remote-work",
+            "topicShort": "Remote work",
+            "title": "Has the rise of remote work improved work-life balance?",
+            "speeches": {
+                  "yes": [
+                        "I agree with the statement that the rise of remote work has improved work-life balance.",
+                        "There are two main reasons for this.",
+                        "Firstly, remote work saves commuting time, so people have more time for their personal lives.",
+                        "For example, they can spend more quality time with their families.",
+                        "In many cities, commuting can take hours each day, so eliminating it can help reduce stress, especially for working parents.",
+                        "Secondly, remote work gives people more flexibility in their schedules.",
+                        "They can decide when to take breaks and how to manage their tasks, which makes it easier to strike a balance between work and personal responsibilities.",
+                        "For example, parents can take better care of their children.",
+                        "For these reasons, I believe that remote work has helped many people achieve a better work-life balance."
+                  ],
+                  "no": [
+                        "I disagree with the statement that the rise of remote work has improved work-life balance.",
+                        "There are two main reasons for this.",
+                        "Firstly, remote work can blur the boundary between work and personal life.",
+                        "When you work in an office, there's a clear separation between your home and your workplace, and when you leave your office, you can leave your work behind.",
+                        "On the other hand, if people work from home, it becomes difficult to separate work from their private time.",
+                        "As a result, people may end up working longer hours and experience work-related stress that is difficult to reduce.",
+                        "Secondly, remote work reduces face-to-face communication.",
+                        "This can make it harder for employees to collaborate effectively and have a sense of belonging to a team.",
+                        "As a result, employees may feel isolated, which can negatively affect their mental health.",
+                        "For these reasons, I believe that remote work has not necessarily improved work-life balance."
+                  ]
+            }
+      },
+      {
+            "category": "Technology",
+            "topicId": "ai-regulation",
+            "topicShort": "AI regulation",
+            "title": "Should governments impose strict regulations on artificial intelligence development?",
+            "speeches": {
+                  "yes": [
+                        "I agree with the statement that governments should impose strict regulations on artificial intelligence development.",
+                        "There are two main reasons for this.",
+                        "Firstly, artificial intelligence may have harmful effects on both society and individuals.",
+                        "For example, it could lead to invasions of privacy.",
+                        "Once people input their personal data into AI tools, there is no way to take it back.",
+                        "Another concern is job displacement.",
+                        "This may result in higher unemployment rates.",
+                        "Secondly, AI can be misused.",
+                        "For instance, spreading misinformation has already become a serious problem on social media.",
+                        "This problem could become even worse without proper regulations.",
+                        "AI could also be used for more dangerous purposes, such as committing crimes and creating autonomous weapons, causing havoc worldwide.",
+                        "For these reasons, I strongly believe that governments should implement stricter regulations on artificial intelligence development."
+                  ],
+                  "no": [
+                        "I disagree with the statement that governments should impose strict regulations on artificial intelligence development.",
+                        "There are two main reasons for this.",
+                        "Firstly, strict regulations could slow down technological advancement.",
+                        "In recent years, many countries have been making great efforts to develop AI technology.",
+                        "Therefore, strict regulations may lead to a loss of international competitiveness, which could also negatively affect economic growth.",
+                        "Secondly, it is difficult for governments to regulate AI properly.",
+                        "Technology often evolves faster than laws, so there will always be loopholes that can be abused by people with malicious intent.",
+                        "As a result, excessive regulations may unintentionally cause even more serious problems.",
+                        "For these reasons, I strongly believe that governments should not implement stricter regulations on artificial intelligence development."
+                  ]
+            }
+      },
+      {
+            "category": "Technology",
+            "topicId": "personal-data",
+            "topicShort": "Personal data",
+            "title": "Should private companies be allowed to collect and sell personal data?",
+            "speeches": {
+                  "yes": [
+                        "I agree with the statement that private companies should be allowed to collect and sell personal data.",
+                        "There are two main reasons for this.",
+                        "Firstly, sharing personal data with companies for certain services can improve overall efficiency.",
+                        "For example, companies can provide more personalized recommendations based on users' preferences and behaviors.",
+                        "As a result, people may save time, enjoy more convenient services, or discover products that better suit their needs.",
+                        "Secondly, companies can make profits by selling consumer preference data, which can lead to improvements in their products and services.",
+                        "For example, analyzing trends based on age groups, gender, or purchasing behavior may help businesses better understand customers' needs.",
+                        "As a consequence, companies may provide more effective and convenient services that are also beneficial to consumers.",
+                        "For these reasons, I strongly believe that private companies should be allowed to collect and sell personal data in ways that are beneficial for both businesses and customers."
+                  ],
+                  "no": [
+                        "I disagree with the statement that private companies should be allowed to collect and sell personal data.",
+                        "There are two main reasons for this.",
+                        "Firstly, selling personal data for companies' own profit would raise serious ethical concerns.",
+                        "People may share their personal data with companies for convenience, but just because they share it does not mean companies should be allowed to misuse it for their own benefit.",
+                        "Personal data belongs to individuals, not to companies.",
+                        "Secondly, personal data contains sensitive information, so collecting and selling it may increase the risk of crimes.",
+                        "If such information leaks out, it could be used for criminal activities by people with malicious intent.",
+                        "Therefore, companies must treat personal data carefully as valuable information and should not misuse or sell it for their own benefit.",
+                        "For these reasons, I strongly believe that private companies should not be allowed to exploit personal data just for their own benefit."
+                  ]
+            }
+      }
+];
+
+    const state = {
+      category: "Education",
+      topicId: "school-refusal",
+      position: "yes",
+      mode: "sentence",
+      level: 0,
+      practiceSet: "all",
+      sentenceIndex: 0,
+      showAnswer: false,
+      toastTimer: null
+    };
+
+    const STOPWORDS = new Set([
+      "a","an","the","and","or","but","so","to","of","in","on","at","for","from","with","by","as","is","are","was","were","be","been","being","that","this","these","those","it","its","their","they","them","he","she","we","you","i","our","your","his","her","not","do","does","did","can","could","should","would","may","might","must","have","has","had","there","more","less","very","also","than","then","when","if","because","while","who","which","what","how","why","will","just","some","all","each"
+    ]);
+
+    function getCategories() {
+      return [...new Set(DATA.map(item => item.category))];
+    }
+
+    function getTopicsForCategory(category) {
+      return DATA.filter(item => item.category === category);
+    }
+
+    function getCurrentTopic() {
+      let topic = DATA.find(item => item.topicId === state.topicId);
+      if (!topic || topic.category !== state.category) {
+        topic = getTopicsForCategory(state.category)[0];
+        state.topicId = topic.topicId;
+      }
+      return topic;
+    }
+
+    function getSentences() {
+      return getCurrentTopic().speeches[state.position];
+    }
+
+    function getStorageKey() {
+      return `eiken-memory-builder:${state.topicId}:${state.position}`;
+    }
+
+    function getMarks() {
+      try {
+        return JSON.parse(localStorage.getItem(getStorageKey())) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveMarks(marks) {
+      localStorage.setItem(getStorageKey(), JSON.stringify(marks));
+    }
+
+    function resetScreenPosition() {
+      state.sentenceIndex = 0;
+      state.showAnswer = false;
+    }
+
+    function setCategory(category) {
+      state.category = category;
+      state.topicId = getTopicsForCategory(category)[0].topicId;
+      state.practiceSet = "all";
+      resetScreenPosition();
+      render();
+    }
+
+    function setTopic(topicId) {
+      state.topicId = topicId;
+      state.practiceSet = "all";
+      resetScreenPosition();
+      render();
+    }
+
+    function setPosition(position) {
+      state.position = position;
+      state.practiceSet = "all";
+      resetScreenPosition();
+      render();
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      resetScreenPosition();
+      render();
+    }
+
+    function setLevel(level) {
+      state.level = level;
+      state.showAnswer = false;
+      resetIndexIfOutOfRange();
+      render();
+    }
+
+    function setPracticeSet(setName) {
+      state.practiceSet = setName;
+      resetScreenPosition();
+      render();
+    }
+
+    function resetIndexIfOutOfRange() {
+      const visible = getVisibleIndices();
+      if (visible.length === 0) {
+        state.sentenceIndex = 0;
+      } else if (state.sentenceIndex >= visible.length) {
+        state.sentenceIndex = visible.length - 1;
+      }
+    }
+
+    function getVisibleIndices() {
+      const marks = getMarks();
+      const sentences = getSentences();
+      const all = sentences.map((_, index) => index);
+
+      if (state.practiceSet === "almost") {
+        return all.filter(index => marks[index] === "almost");
+      }
+      if (state.practiceSet === "difficult") {
+        return all.filter(index => marks[index] === "difficult");
+      }
+      if (state.practiceSet === "review") {
+        return all.filter(index => marks[index] === "almost" || marks[index] === "difficult");
+      }
+      return all;
+    }
+
+    function countWords(sentences) {
+      return sentences.join(" ").match(/\b[A-Za-z]+(?:'[A-Za-z]+)?\b/g)?.length || 0;
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[char]);
+    }
+
+    function shorten(sentence, max = 58) {
+      return sentence.length > max ? sentence.slice(0, max).trim() + "..." : sentence;
+    }
+
+    function starter(sentence, level) {
+      const s = sentence.trim();
+      const patterns = [
+        ["For these reasons", "For these reasons,..."],
+        ["There are", "There are..."],
+        ["Firstly", "Firstly,..."],
+        ["Secondly", "Secondly,..."],
+        ["For example", "For example,..."],
+        ["In addition", "In addition,..."],
+        ["As a result", "As a result,..."],
+        ["Therefore", "Therefore,..."],
+        ["However", "However,..."],
+        ["Because", "Because..."],
+        ["When", "When..."],
+        ["If", "If..."],
+        ["One solution", "One solution..."],
+        ["Some students", "Some students..."],
+        ["Teachers, parents, and specialists", "Teachers, parents, and specialists..."],
+        ["Many traditional events", "Many traditional events..."],
+        ["Traditional festivals and ceremonies", "Traditional festivals and ceremonies..."],
+        ["This money", "This money..."],
+        ["I agree", "I agree..."],
+        ["I disagree", "I disagree..."]
+      ];
+      const found = patterns.find(([prefix]) => s.startsWith(prefix));
+      if (level === 5 && found) return found[1];
+      if (level === 5) return s.split(/\s+/).slice(0, 2).join(" ") + "...";
+      return s.split(/\s+/).slice(0, 5).join(" ") + "...";
+    }
+
+    function renderSentence(sentence, level, showAnswer) {
+      if (showAnswer || level === 0) {
+        return escapeHtml(sentence);
+      }
+      if (level === 6) {
+        return `<span class="muted-memory">Speak this sentence from memory.</span>`;
+      }
+      if (level === 4 || level === 5) {
+        return escapeHtml(starter(sentence, level));
+      }
+
+      const hideRatios = { 1: 0.28, 2: 0.46, 3: 0.64 };
+      const ratio = hideRatios[level] || 0;
+      let contentIndex = 0;
+
+      return sentence.replace(/\b[A-Za-z]+(?:'[A-Za-z]+)?\b/g, (word) => {
+        const plain = word.toLowerCase();
+        const eligible = word.length > 3 && !STOPWORDS.has(plain);
+        if (!eligible) return escapeHtml(word);
+
+        contentIndex++;
+        const hash = (plain.length * 13 + contentIndex * 17 + level * 19) % 100;
+        const shouldHide = hash < ratio * 100;
+
+        if (!shouldHide) return escapeHtml(word);
+
+        const width = Math.min(Math.max(word.length * 0.58, 3.8), 9.5);
+        return `<span class="blank" style="min-width:${width}em"></span>`;
+      });
+    }
+
+    function fullSpeechPlain() {
+      return getSentences().join("\n\n");
+    }
+
+    function renderSelectorTabs() {
+      const categoryTabs = document.getElementById("categoryTabs");
+      categoryTabs.innerHTML = getCategories().map(category => `
+        <button class="tab ${state.category === category ? "active" : ""}" onclick="setCategory('${category}')">${category}</button>
+      `).join("");
+
+      const topicTabs = document.getElementById("topicTabs");
+      topicTabs.innerHTML = getTopicsForCategory(state.category).map(topic => `
+        <button class="tab topic-tab ${state.topicId === topic.topicId ? "active" : ""}" onclick="setTopic('${topic.topicId}')">${topic.topicShort}</button>
+      `).join("");
+
+      document.getElementById("yesTab").classList.toggle("active", state.position === "yes");
+      document.getElementById("noTab").classList.toggle("active", state.position === "no");
+      document.getElementById("wholeTab").classList.toggle("active", state.mode === "whole");
+      document.getElementById("sentenceTab").classList.toggle("active", state.mode === "sentence");
+
+      for (let i = 0; i <= 6; i++) {
+        document.getElementById(`level${i}`).classList.toggle("active", state.level === i);
+      }
+
+      document.getElementById("practiceSetRow").style.display = state.mode === "sentence" ? "flex" : "none";
+      document.getElementById("setAll").classList.toggle("active", state.practiceSet === "all");
+      document.getElementById("setAlmost").classList.toggle("active", state.practiceSet === "almost");
+      document.getElementById("setDifficult").classList.toggle("active", state.practiceSet === "difficult");
+      document.getElementById("setReview").classList.toggle("active", state.practiceSet === "review");
+    }
+
+    function renderHeader() {
+      const topic = getCurrentTopic();
+      const sentences = getSentences();
+
+      document.getElementById("currentTitle").textContent = topic.title;
+      document.getElementById("currentSub").textContent = `${topic.category} / ${state.position.toUpperCase()} / ${state.mode === "whole" ? "Whole Speech" : "Sentence by Sentence"}`;
+      document.getElementById("wordCount").textContent = `${sentences.length} sentences / ${countWords(sentences)} words`;
+    }
+
+    function renderWholeMode() {
+      const sentences = getSentences();
+      const level = state.level;
+
+      let body = "";
+      if (level === 6 && !state.showAnswer) {
+        body = `<p class="speech-text">Speak the entire speech from memory.</p>`;
+      } else {
+        body = `<div class="whole-text">` + sentences.map(s => `
+          <span class="whole-sentence">${renderSentence(s, level, state.showAnswer)}</span>
+        `).join("") + `</div>`;
+      }
+
+      document.getElementById("main").innerHTML = `
+        <div class="main-area whole">
+          <div class="card">
+            <div class="sentence-meta">Whole Speech / Level ${level}</div>
+            ${body}
+            ${state.showAnswer ? `<div class="answer-box">${escapeHtml(fullSpeechPlain()).replace(/\n/g, "<br>")}</div>` : ""}
+            <p class="hint">Read it out loud. Move to the next level when the current level feels easy.</p>
+            <div class="button-row">
+              <button class="btn" onclick="toggleAnswer()">${state.showAnswer ? "Hide Answer" : "Show Answer"}</button>
+              <button class="btn gray" onclick="setLevel(Math.max(0, state.level - 1))" ${state.level === 0 ? "disabled" : ""}>Previous Level</button>
+              <button class="btn secondary" onclick="setLevel(Math.min(6, state.level + 1))" ${state.level === 6 ? "disabled" : ""}>Next Level</button>
+              <button class="btn secondary" onclick="setMode('sentence')">Practice one sentence</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function markLabel(value) {
+      if (value === "easy") return `<span class="mark easy">○ Easy</span>`;
+      if (value === "almost") return `<span class="mark almost">△ Almost</span>`;
+      if (value === "difficult") return `<span class="mark difficult">× Difficult</span>`;
+      return "";
+    }
+
+    function renderSentenceList(visible) {
+      const marks = getMarks();
+      const sentences = getSentences();
+      const activeOriginalIndex = visible[state.sentenceIndex];
+
+      if (visible.length === 0) {
+        return `
+          <div class="sentence-list">
+            <div class="sentence-list-header">
+              <span>Sentences</span>
+              <span>0</span>
+            </div>
+            <div class="empty">
+              No sentences in this practice set yet.<br>
+              Mark some sentences as △ or × in All sentences.
+              <div class="button-row" style="justify-content:center;">
+                <button class="btn secondary" onclick="setPracticeSet('all')">Go to All sentences</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="sentence-list">
+          <div class="sentence-list-header">
+            <span>${practiceSetName()}</span>
+            <span>${visible.length}</span>
+          </div>
+          ${visible.map((originalIndex, listIndex) => `
+            <button class="sentence-item ${originalIndex === activeOriginalIndex ? "active" : ""}" onclick="jumpToSentence(${listIndex})">
+              <span class="num">${originalIndex + 1}</span>
+              <span>${escapeHtml(shorten(sentences[originalIndex]))}</span>
+              ${markLabel(marks[originalIndex])}
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderSentenceMode() {
+      const visible = getVisibleIndices();
+      resetIndexIfOutOfRange();
+
+      if (visible.length === 0) {
+        document.getElementById("main").innerHTML = `
+          <div class="main-area">
+            ${renderSentenceList(visible)}
+            <div class="card">
+              <div class="sentence-meta">${practiceSetName()}</div>
+              <div class="empty">
+                This set is empty right now.<br>
+                Use All sentences first, then mark sentences as △ Almost or × Difficult.
+              </div>
+              <div class="button-row">
+                <button class="btn secondary" onclick="setPracticeSet('all')">All sentences</button>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const originalIndex = visible[state.sentenceIndex];
+      const sentences = getSentences();
+      const sentence = sentences[originalIndex];
+      const marks = getMarks();
+      const currentMark = marks[originalIndex];
+
+      document.getElementById("main").innerHTML = `
+        <div class="main-area">
+          ${renderSentenceList(visible)}
+          <div class="card">
+            <div class="sentence-meta">Sentence ${originalIndex + 1} / ${sentences.length} ・ ${practiceSetName()} ・ Level ${state.level}</div>
+            <p class="speech-text">${renderSentence(sentence, state.level, state.showAnswer)}</p>
+            ${state.showAnswer ? `<div class="answer-box">${escapeHtml(sentence)}</div>` : ""}
+            <p class="hint">Say it out loud. Then mark how it went. ○ / △ / × will automatically move to the next sentence.</p>
+            <div class="button-row">
+              <button class="btn" onclick="toggleAnswer()">${state.showAnswer ? "Hide Answer" : "Show Answer"}</button>
+              <button class="btn green" onclick="markSentence('easy')">○ Easy</button>
+              <button class="btn orange" onclick="markSentence('almost')">△ Almost</button>
+              <button class="btn red" onclick="markSentence('difficult')">× Difficult</button>
+            </div>
+            <div class="button-row">
+              <button class="btn gray" onclick="previousSentence()" ${state.sentenceIndex === 0 ? "disabled" : ""}>Previous Sentence</button>
+              <button class="btn secondary" onclick="nextSentence()" ${state.sentenceIndex >= visible.length - 1 ? "disabled" : ""}>Next Sentence</button>
+              <button class="btn gray" onclick="clearCurrentMark()" ${!currentMark ? "disabled" : ""}>Clear Mark</button>
+              <button class="btn secondary" onclick="setMode('whole')">Practice whole speech</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function practiceSetName() {
+      if (state.practiceSet === "almost") return "△ Almost only";
+      if (state.practiceSet === "difficult") return "× Difficult only";
+      if (state.practiceSet === "review") return "△ + × Review";
+      return "All sentences";
+    }
+
+    function toggleAnswer() {
+      state.showAnswer = !state.showAnswer;
+      render();
+    }
+
+    function jumpToSentence(listIndex) {
+      state.sentenceIndex = listIndex;
+      state.showAnswer = false;
+      render();
+    }
+
+    function nextSentence() {
+      const visible = getVisibleIndices();
+      if (state.sentenceIndex < visible.length - 1) {
+        state.sentenceIndex++;
+        state.showAnswer = false;
+        render();
+      } else {
+        showToast("This is the last sentence in the current set.");
+      }
+    }
+
+    function previousSentence() {
+      if (state.sentenceIndex > 0) {
+        state.sentenceIndex--;
+        state.showAnswer = false;
+        render();
+      }
+    }
+
+    function markSentence(value) {
+      const oldVisible = getVisibleIndices();
+      if (oldVisible.length === 0) return;
+
+      const oldListIndex = state.sentenceIndex;
+      const originalIndex = oldVisible[oldListIndex];
+      const marks = getMarks();
+      marks[originalIndex] = value;
+      saveMarks(marks);
+
+      const newVisible = getVisibleIndices();
+
+      if (state.practiceSet === "all") {
+        if (oldListIndex < oldVisible.length - 1) {
+          state.sentenceIndex = oldListIndex + 1;
+        } else {
+          state.sentenceIndex = oldListIndex;
+          showToast("Finished the last sentence in All sentences.");
+        }
+      } else {
+        if (newVisible.length === 0) {
+          state.sentenceIndex = 0;
+          showToast("This practice set is now empty.");
+        } else if (oldListIndex < newVisible.length) {
+          state.sentenceIndex = oldListIndex;
+        } else {
+          state.sentenceIndex = newVisible.length - 1;
+          showToast("Finished the last sentence in this set.");
+        }
+      }
+
+      state.showAnswer = false;
+      render();
+    }
+
+    function clearCurrentMark() {
+      const visible = getVisibleIndices();
+      if (visible.length === 0) return;
+      const originalIndex = visible[state.sentenceIndex];
+      const marks = getMarks();
+      delete marks[originalIndex];
+      saveMarks(marks);
+      resetIndexIfOutOfRange();
+      render();
+    }
+
+    function clearAllMarks() {
+      localStorage.removeItem(getStorageKey());
+      state.practiceSet = "all";
+      resetScreenPosition();
+      render();
+      showToast("All marks cleared for this speech.");
+    }
+
+    function renderStats() {
+      const sentences = getSentences();
+      const marks = getMarks();
+      const almost = sentences.filter((_, i) => marks[i] === "almost").length;
+      const difficult = sentences.filter((_, i) => marks[i] === "difficult").length;
+      const easy = sentences.filter((_, i) => marks[i] === "easy").length;
+      const showing = state.mode === "sentence" ? getVisibleIndices().length : sentences.length;
+
+      document.getElementById("stats").innerHTML = `
+        <span class="stat-pill">Practice Set: ${state.mode === "sentence" ? practiceSetName() : "Whole Speech"}</span>
+        <span class="stat-pill">Showing: ${showing}</span>
+        <span class="stat-pill">○ ${easy}</span>
+        <span class="stat-pill">△ ${almost}</span>
+        <span class="stat-pill">× ${difficult}</span>
+        <button class="tab small" onclick="clearAllMarks()">Clear all marks</button>
+      `;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      if (state.toastTimer) clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function render() {
+      renderSelectorTabs();
+      renderHeader();
+
+      if (state.mode === "whole") {
+        renderWholeMode();
+      } else {
+        renderSentenceMode();
+      }
+
+      renderStats();
+    }
+
+    render();
+  </script>
+</body>
+</html>
